@@ -1,2 +1,2 @@
-# invisible-queries-request-handler
+# Invisible Queries RequestHandler
 A Solr RequestHandler for executing subsequent and configurable queries
