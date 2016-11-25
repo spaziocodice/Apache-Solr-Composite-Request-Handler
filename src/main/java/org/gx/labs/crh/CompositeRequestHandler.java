@@ -13,6 +13,12 @@ import org.apache.solr.response.ResultContext;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.DocSlice;
 
+/**
+ * A {@link SolrRequestHandler} that chains several children {@link SolrRequestHandler}s.
+ * 
+ * @author agazzarini
+ * @since 1.0
+ */
 public class CompositeRequestHandler extends RequestHandlerBase {
 	@Override
 	public void handleRequestBody(
@@ -41,18 +47,33 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 		response.addResponse(result);
 	}
 	
-	@SuppressWarnings("unchecked")
+	/**
+	 * Clones a given response.
+	 * 
+	 * @param response the original {@link SolrQueryResponse}.
+	 * @return a clone of the incoming response.
+	 */
 	public SolrQueryResponse clone(final SolrQueryResponse response) {
-		final SolrQueryResponse clone = new SolrQueryResponse();
-//		clone.setAllValues(response.getValues());
-//d		System.out.println(response.getValues().hashCode());
-		return clone;
+		return new SolrQueryResponse();
 	}
 	
+	/**
+	 * Returns the {@link RequestHandler} associated with the given name.
+	 * 
+	 * @param request the current {@link SolrQueryRequest}.
+	 * @param name the name of the requested {@link RequestHandler}.
+	 * @return the {@link RequestHandler} associated with the given name.
+	 */
 	SolrRequestHandler requestHandler(final SolrQueryRequest request, final String name) {
 		return core(request).getRequestHandler(name);
 	}
 	
+	/**
+	 * Returns the {@link SolrCore} associated with the given request.
+	 * 
+	 * @param request the current {@link SolrQueryRequest}.
+	 * @return the {@link SolrCore} associated with the given request.
+	 */
 	SolrCore core(final SolrQueryRequest request) {
 		return request.getCore();
 	}

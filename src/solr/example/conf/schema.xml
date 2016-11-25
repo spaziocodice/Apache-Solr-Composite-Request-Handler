@@ -5,7 +5,7 @@
 	-->
     <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
 	<field name="title" type="unstemmed-text" indexed="true" stored="true" required="true" multiValued="false"/>
-	<field name="author" type="unstemmed-text" indexed="false" stored="true" required="true" multiValued="false"/>
+	<field name="author" type="unstemmed-text" indexed="true" stored="true" required="true" multiValued="false"/>
 
     <uniqueKey>id</uniqueKey>
 	
