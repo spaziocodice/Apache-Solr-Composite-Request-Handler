@@ -1,0 +1,13 @@
+<lst name="defaults">
+	<str name="echoParams">explicit</str>
+	<str name="fl">id,type,headings,sources,m_datafield</str>
+	<int name="rows">10</int>
+	<str name="defType">namesQp</str>
+	<str name="qf">name dates birth_date</str>
+	<str name="pf">name^10</str>
+	<str name="pf2">name^10</str>
+	<str name="mm">100</str>
+	<str name="tie">0.01</str>
+	<str name="df">id</str>
+	<str name="boost">sum(1,product(0.5,sourcesCount))</str>
+</lst>

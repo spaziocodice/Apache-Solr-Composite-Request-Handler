@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="simple sample minimalistic schema" version="1.5">
+	<!-- 
+		Entity identifier 
+	-->
+    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
+	<field name="title" type="unstemmed-text" indexed="true" stored="true" required="true" multiValued="false"/>
+	<field name="author" type="unstemmed-text" indexed="false" stored="true" required="true" multiValued="false"/>
+
+    <uniqueKey>id</uniqueKey>
+	
+	<fieldtype name="unstemmed-text" class="solr.TextField" positionIncrementGap="100" omitNorms="false">
+      	<analyzer>
+			<charFilter class="solr.MappingCharFilterFactory" mapping="mapping-FoldToASCII.txt"/>
+        	<tokenizer class="solr.WhitespaceTokenizerFactory" />
+        	<filter class="solr.LowerCaseFilterFactory" />			        	
+			<filter class="solr.WordDelimiterFilterFactory" 
+				generateWordParts="1" 
+				generateNumberParts="1" 
+				catenateWords="0" 
+				catenateNumbers="0" 
+				catenateAll="0" 
+				splitOnCaseChange="0" />	
+      	</analyzer>
+	</fieldtype>
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true"/>
+</schema>
