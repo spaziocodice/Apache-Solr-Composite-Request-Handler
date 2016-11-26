@@ -1,9 +1,10 @@
-package org.gx.labs.crh;
+package org.gx.labs.crh.unit;
 
 import static org.mockito.Mockito.mock;
 
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
+import org.gx.labs.crh.FacadeRequestHandler;
 import org.junit.Before;
 
 /**
@@ -11,8 +12,8 @@ import org.junit.Before;
  * @author agazzarini
  *
  */
-public class CompositeRequestHandlerTestCase {
-	private CompositeRequestHandler cut;
+public class FacadeRequestHandlerTestCase {
+	private FacadeRequestHandler cut;
 	
 	private SolrRequestHandler rh1;
 	private SolrRequestHandler rh2;
@@ -26,20 +27,20 @@ public class CompositeRequestHandlerTestCase {
 		rh2 = mock(SolrRequestHandler.class);
 		rh3 = mock(SolrRequestHandler.class);
 		
-		cut = new CompositeRequestHandler() {
-			@Override
-			SolrRequestHandler requestHandler(final SolrQueryRequest request, final String name) {
-				if ("/rh1".equals(name)) {
-					return rh1;
-				} else if ("/rh2".equals(name)) {
-					return rh2;
-				} else if ("/rh3".equals(name)) {
-					return rh3;
-				} 
-				
-				throw new IllegalArgumentException("Unknown request handler: " + name);
-			}
-		};
+//		cut = new FacadeRequestHandler() {
+//			@Override
+//			SolrRequestHandler requestHandler(final SolrQueryRequest request, final String name) {
+//				if ("/rh1".equals(name)) {
+//					return rh1;
+//				} else if ("/rh2".equals(name)) {
+//					return rh2;
+//				} else if ("/rh3".equals(name)) {
+//					return rh3;
+//				} 
+//				
+//				throw new IllegalArgumentException("Unknown request handler: " + name);
+//			}
+//		};
 	}
 	
 	public void stopAtFirstNonZeroResult() {

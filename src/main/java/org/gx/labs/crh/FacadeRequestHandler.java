@@ -4,6 +4,7 @@ import static java.util.Arrays.stream;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.RequestHandlerBase;
 import org.apache.solr.handler.component.SearchHandler;
@@ -15,12 +16,20 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.DocSlice;
 
 /**
- * A {@link SolrRequestHandler} that chains several children {@link SolrRequestHandler}s.
+ * A {@link SolrRequestHandler} that subsequently invokes several children {@link SolrRequestHandler}s.
  * 
  * @author agazzarini
  * @since 1.0
  */
-public class CompositeRequestHandler extends RequestHandlerBase {
+public class FacadeRequestHandler extends RequestHandlerBase {
+	private String [] chain;
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	 public void init(final NamedList args) {
+		chain = SolrParams.toSolrParams(args).get("chain").split(",");
+	 }
+	
 	@Override
 	public void handleRequestBody(
 			final SolrQueryRequest request, 
@@ -28,7 +37,7 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 		final SolrParams params = request.getParams();
 
 		response.addResponse(
-			stream(request.getParams().get("chain").split(","))
+			stream(chain)
 				.map(refName -> { return requestHandler(request, refName);})
 				.filter(SearchHandler.class::isInstance) 
 				.map(handler -> { return executeQuery(request, response, params, handler); })

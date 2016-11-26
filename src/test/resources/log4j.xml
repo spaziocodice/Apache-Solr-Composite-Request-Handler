@@ -13,7 +13,7 @@
    	    <priority value="ERROR"/>
    	</category>   	
 	<root>
-		<priority value="ERROR"/>
+		<priority value="INFO"/>
  		<appender-ref ref="CONSOLE"/>
    	</root>
 </log4j:configuration>
