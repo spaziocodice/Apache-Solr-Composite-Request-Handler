@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <schema name="simple sample minimalistic schema" version="1.5">
-	<!-- 
-		Entity identifier 
-	-->
+    <!-- 
+    	The schema in this example is kept simple, as much as possible.
+     -->
     <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
-	<field name="title" type="unstemmed-text" indexed="true" stored="true" required="true" multiValued="false"/>
-	<field name="author" type="unstemmed-text" indexed="true" stored="true" required="true" multiValued="false"/>
+	<field name="title" type="text" indexed="true" stored="true" required="true" multiValued="false"/>
+	<field name="author" type="text" indexed="true" stored="true" required="true" multiValued="false"/>
 
     <uniqueKey>id</uniqueKey>
 	
-	<fieldtype name="unstemmed-text" class="solr.TextField" positionIncrementGap="100" omitNorms="false">
+	<fieldtype name="text" class="solr.TextField">
       	<analyzer>
 			<charFilter class="solr.MappingCharFilterFactory" mapping="mapping-FoldToASCII.txt"/>
         	<tokenizer class="solr.WhitespaceTokenizerFactory" />
