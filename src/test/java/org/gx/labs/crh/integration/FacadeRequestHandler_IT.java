@@ -87,7 +87,7 @@ public class FacadeRequestHandler_IT extends BaseIntegrationTest {
 		assertEquals(0, response.getResults().getNumFound());		
 	}
 	
-	@After
+	@After 
 	public void tearDown() throws Exception {
 		super.tearDown();
 		final SolrClient indexer = getSolrClient();

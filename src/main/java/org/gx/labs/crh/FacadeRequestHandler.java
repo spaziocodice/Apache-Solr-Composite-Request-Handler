@@ -1,6 +1,10 @@
 package org.gx.labs.crh;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+import static org.apache.solr.common.params.SolrParams.toSolrParams;
+
+import java.util.List;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -20,11 +24,6 @@ import org.apache.solr.search.DocList;
 import org.apache.solr.search.DocSlice;
 import org.apache.solr.util.RTimerTree;
 import org.eclipse.jetty.http.HttpParser.RequestHandler;
-
-import static org.apache.solr.common.params.SolrParams.*;
-import static java.util.stream.Collectors.*;
-import java.util.List;
-import java.util.TooManyListenersException;
 
 /**
  * A {@link SolrRequestHandler} that subsequently invokes several children {@link SolrRequestHandler}s.

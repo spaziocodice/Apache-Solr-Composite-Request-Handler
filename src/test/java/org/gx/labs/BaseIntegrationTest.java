@@ -30,7 +30,7 @@ public abstract class BaseIntegrationTest extends SolrJettyTestBase {
 			throw new RuntimeException(exception);
 		}
 	}
-	
+	 
 	public SolrClient createNewSolrClient() {
 		final String url = jetty.getBaseUrl().toString() + "/example";
         final HttpSolrClient client = getHttpSolrClient(url);

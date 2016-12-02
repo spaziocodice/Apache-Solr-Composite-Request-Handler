@@ -7,7 +7,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,44 +15,46 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.core.SolrCore;
+import org.apache.solr.handler.component.SearchHandler;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
 import org.apache.solr.response.SolrQueryResponse;
 import org.junit.Before;
 import org.junit.Test;
 /**
- * TODO : INCOMPLETE
+ * Unit test for {@link FacadeRequestHandler}.
+ * 
  * @author agazzarini
- *
+ * @since 1.0
  */
-public class FacadeRequestHandlerTestCase {
-	private FacadeRequestHandler cut;
-	
-	private SolrRequestHandler rh1;
-	private SolrRequestHandler rh2;
-	private SolrRequestHandler rh3;
-	
-	private final static List<String> SAMPLE_VALID_CHAIN = asList("/rh1", "/rh2", "/rh3");
-	
+public class FacadeRequestHandlerTestCase extends BaseUnitTest {
 	@Before
 	public void setUp() {
-		rh1 = mock(SolrRequestHandler.class);
-		rh2 = mock(SolrRequestHandler.class);
-		rh3 = mock(SolrRequestHandler.class);
+		rh1 = mock(SearchHandler.class);
+		rh2 = mock(SearchHandler.class);
+		rh3 = mock(SearchHandler.class);
 		
 		cut = new FacadeRequestHandler();
+		
+		qrequest = mock(SolrQueryRequest.class);
+		qresponse = mock(SolrQueryResponse.class);
+		
+		args = new SimpleOrderedMap<>();
+		args.add(
+				FacadeRequestHandler.CHAIN_KEY, 
+				SAMPLE_VALID_CHAIN.stream().collect(joining(",")));
+		
+		params = new ModifiableSolrParams().add(SAMPLE_KEY, SAMPLE_VALUE);
 	}
 	
 	@Test
 	public void cloneResponse() {
 		final Object response = new Object();
 		final NamedList<Object> responseHeader = new SimpleOrderedMap<>();
-		
-		final SolrQueryResponse qresponse = mock(SolrQueryResponse.class);
+	
 		when(qresponse.getResponse()).thenReturn(response);
 		when(qresponse.getResponseHeader()).thenReturn(responseHeader);
 		
@@ -64,13 +66,7 @@ public class FacadeRequestHandlerTestCase {
 	
 	@Test
 	public void chainIsDefinedOnInit() {
-		final NamedList<Object> args = new SimpleOrderedMap<>();
-		args.add(
-				FacadeRequestHandler.CHAIN_KEY, 
-				SAMPLE_VALID_CHAIN.stream().collect(joining(",")));
-		
 		cut.init(args);
-		
 		assertEquals(SAMPLE_VALID_CHAIN, cut.chain);
 	}
 	
@@ -87,30 +83,21 @@ public class FacadeRequestHandlerTestCase {
 		assertEquals(
 				0, 
 				cut.howManyFound(
-						cut.emptyResponse(
-								mock(SolrQueryRequest.class), 
-								mock(SolrQueryResponse.class))));
+						cut.emptyResponse(qrequest, qresponse)));
 	}
 	
 	@Test
 	public void zeroDocFoundInCaseOfNoResultContext() {
-		final NamedList<?> responseWhichDoesntContainResultContext = new SimpleOrderedMap<>();
-		
-		assertEquals(
-				0, 
-				cut.howManyFound(responseWhichDoesntContainResultContext));
+		assertEquals(0, cut.howManyFound(new SimpleOrderedMap<>()));
 	}
 	
 	@Test
 	public void newRequest() {
-		final SolrQueryRequest request = mock(SolrQueryRequest.class);
-		final ModifiableSolrParams params = new ModifiableSolrParams().add("SAMPLE_KEY", "SAMPLE_VALUE");
-		
-		final SolrQueryRequest newRequest = cut.newFrom(request, params);
+		final SolrQueryRequest newRequest = cut.newFrom(qrequest, params);
  
-		verify(request).getCore();
+		verify(qrequest).getCore();
 
-		assertNotSame(newRequest, request);
+		assertNotSame(newRequest, qrequest);
 		assertNotSame(newRequest.getParams(), params);
 		
 		assertEquals(params.size(), newRequest.getParams().toNamedList().size());
@@ -121,12 +108,9 @@ public class FacadeRequestHandlerTestCase {
 	
 	@Test
 	public void executeQuery() {
-		final SolrQueryRequest request = mock(SolrQueryRequest.class);
-		final SolrParams params = new ModifiableSolrParams().add("SAMPLE_KEY", "SAMPLE_VALUE");
-		final SolrQueryResponse response = mock(SolrQueryResponse.class);
 		final SolrRequestHandler handler = mock(SolrRequestHandler.class);
 		
-		final NamedList<?> result = cut.executeQuery(request, response, params, handler);
+		final NamedList<?> result = cut.executeQuery(qrequest, qresponse, params, handler);
 		
 		verify(handler).handleRequest(any(SolrQueryRequest.class), any(SolrQueryResponse.class));
 		assertEquals(1, result.size());
@@ -134,24 +118,21 @@ public class FacadeRequestHandlerTestCase {
 	
 	@Test
 	public void getCore() {
-		final SolrQueryRequest request = mock(SolrQueryRequest.class);
-		cut.core(request);
-		
-		verify(request).getCore();
+		cut.core(qrequest);
+		verify(qrequest).getCore();
 	}
 	
 	@Test
 	public void getRequestHandler() {
-		final SolrQueryRequest request = mock(SolrQueryRequest.class);
 		final SolrCore core = mock(SolrCore.class);
 		
-		when(request.getCore()).thenReturn(core);
+		when(qrequest.getCore()).thenReturn(core);
 		when(core.getRequestHandler("/rh1")).thenReturn(rh1);
 		when(core.getRequestHandler("/rh2")).thenReturn(rh2);
 		when(core.getRequestHandler("/rh3")).thenReturn(rh3);
 
-		assertSame(rh1, cut.requestHandler(request, "/rh1"));
-		assertSame(rh2, cut.requestHandler(request, "/rh2"));
-		assertSame(rh3, cut.requestHandler(request, "/rh3"));
+		assertSame(rh1, cut.requestHandler(qrequest, "/rh1"));
+		assertSame(rh2, cut.requestHandler(qrequest, "/rh2"));
+		assertSame(rh3, cut.requestHandler(qrequest, "/rh3"));
 	}
 }
