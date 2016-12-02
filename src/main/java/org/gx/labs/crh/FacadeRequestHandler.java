@@ -21,6 +21,11 @@ import org.apache.solr.search.DocSlice;
 import org.apache.solr.util.RTimerTree;
 import org.eclipse.jetty.http.HttpParser.RequestHandler;
 
+import static org.apache.solr.common.params.SolrParams.*;
+import static java.util.stream.Collectors.*;
+import java.util.List;
+import java.util.TooManyListenersException;
+
 /**
  * A {@link SolrRequestHandler} that subsequently invokes several children {@link SolrRequestHandler}s.
  * 
@@ -32,13 +37,17 @@ public class FacadeRequestHandler extends RequestHandlerBase {
 	
 	final static String RESPONSE_KEY = "response"; // If only SolrQueryResponse.RESPONSE_KEY would be public ;)
 	final static String RESPONSE_HEADER_KEY = "responseHeader"; // If only SolrQueryResponse.RESPONSE_HEADER_KEY would be public ;)
+	final static String CHAIN_KEY= "chain";
 	
-	private String [] chain;
+	List<String> chain;
 	
 	@Override
 	@SuppressWarnings("rawtypes")
-	public void init(final NamedList args) {
-		chain = SolrParams.toSolrParams(args).get("chain").split(",");
+	public void init(final NamedList args) { 
+		chain = stream(toSolrParams(args).get(CHAIN_KEY, "").split(","))
+					.map(ref -> ref.trim())
+					.filter(ref -> !ref.isEmpty())
+					.collect(toList());
 	}
 	
 	@Override
@@ -48,7 +57,7 @@ public class FacadeRequestHandler extends RequestHandlerBase {
 		final SolrParams params = request.getParams();
 
 		response.setAllValues(
-			stream(chain)
+			chain.stream()
 				.map(refName -> { return requestHandler(request, refName); })
 				.filter(SearchHandler.class::isInstance) 
 				.map(handler -> { return executeQuery(request, response, params, handler); })
@@ -64,9 +73,10 @@ public class FacadeRequestHandler extends RequestHandlerBase {
 	 * @return the total count of matches associated with the given query response.
 	 */
 	int howManyFound(final NamedList<?> qresponse) {
-		return ((ResultContext)qresponse.get(RESPONSE_KEY)).getDocList().size();
+		final ResultContext context = (ResultContext)qresponse.get(RESPONSE_KEY);
+		return context != null ? context.getDocList().size() : 0;
 	}
-	
+	 
 	/**
 	 * Returns a Null Object response, indicating no handler produced a match.
 	 * 
@@ -102,23 +112,34 @@ public class FacadeRequestHandler extends RequestHandlerBase {
 			final SolrQueryResponse response, 
 			final SolrParams params, 
 			final SolrRequestHandler handler) {
-		final SolrQueryResponse scopedResponse = clone(response);
+		final SolrQueryResponse scopedResponse = newFrom(response);
 		handler.handleRequest(
-				new SolrQueryRequestBase(
-						request.getCore(), 
-						new ModifiableSolrParams(params), 
-						new RTimerTree()) {}, 
+				newFrom(request, params), 
 				scopedResponse); 
 		return scopedResponse.getValues();	
 	}
 	
 	/**
-	 * Clones a given response.
+	 * Creates a new {@link SolrQueryRequest} from a given prototype and injects there a set of params. 
+	 * 
+	 * @param request the prototype {@link SolrQueryRequest}.
+	 * @param params the parameters that will be injected.
+	 * @return a {@link SolrQueryRequest} clone.
+	 */
+	public SolrQueryRequest newFrom(final SolrQueryRequest request, final SolrParams params) {
+		return new SolrQueryRequestBase(
+				request.getCore(), 
+				new ModifiableSolrParams(params), 
+				new RTimerTree()) {};
+	}
+	
+	/**
+	 * Creates a new {@link SolrQueryResponse} from a given prototype. 
 	 * 
 	 * @param response the original {@link SolrQueryResponse}.
 	 * @return a clone of the incoming response.
 	 */
-	public SolrQueryResponse clone(final SolrQueryResponse response) {
+	public SolrQueryResponse newFrom(final SolrQueryResponse response) {
 		final SolrQueryResponse clone = new SolrQueryResponse();
 		clone.addResponseHeader(response.getResponseHeader());
 		return clone;
