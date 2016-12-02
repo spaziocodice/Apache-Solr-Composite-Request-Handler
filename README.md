@@ -61,7 +61,7 @@ Now, executing a query like this:
 > curl "http://127.0.0.1:8983/solr/example/search?q=Andrea"
 ```
 
-will start the "/rh1, /rh2, /rh3" defined in the "chain" parameter.
+will start the "/rh1, /rh2, /rh3" workflow defined in the "chain" parameter.
 
 In this repository, other than the handler itself, you will also find a sample schema, a solrconfig plus unit / integration tests that demonstrate the behaviour.  
 
