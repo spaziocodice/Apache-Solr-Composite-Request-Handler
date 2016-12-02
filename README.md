@@ -43,17 +43,25 @@ For example, let's imagine we have the following three handlers defined:
 
 and you want to run the first handler (/rh1), then the second (/rh2) if the first produces no results, and finally the third (/rh3) but only if the second didn't get any matches. 
 
-Usually, this is a behaviour which belongs to the client application, but that assumes you have control on that client. 
+Usually, this is a behaviour which belongs to the client application, but that assumes you have control on the client code. 
 
 Unfortunately there are some contexts where you don't have such kind of control; an example? The Magento-Solr connector is a blackbox where you configure something on Magento and Solr side, but of course, you cannot declare such "query workflow" behaviour like that described above: on top of a user query, the Magento connector executes a given search logic that you cannot change (unless you're are a Magento developer, of course)
 
-So here comes this request handler: once plugged in Solr, you can chain the three handlers in this way: 
+So here comes this request handler: once plugged in Solr, you can chain the three handlers above in this way: 
 
 ```xml
 	<requestHandler name="/search" class="org.gx.labs.crh.FacadeRequestHandler">
 		<str name="chain">/rh1,/rh2,/rh3</str>
 	</requestHandler>
 ```
+
+Now, executing a query like this: 
+
+```
+> curl "http://127.0.0.1:8983/solr/example/search?q=Andrea"
+```
+
+will start the "/rh1, /rh2, /rh3" defined in the "chain" parameter.
 
 In this repository, other than the handler itself, you will also find a sample schema, a solrconfig plus unit / integration tests that demonstrate the behaviour.  
 
