@@ -12,6 +12,8 @@ import org.junit.BeforeClass;
  * 
  * @author agazzarini
  * @since 1.0
+ * @see http://andreagazzarini.blogspot.com/2016/11/quickly-debug-your-solr-add-on.html
+ * @see https://andreagazzarini.blogspot.com/2015/10/how-to-do-integration-tests-with-solr.html
  */
 public abstract class BaseIntegrationTest extends SolrJettyTestBase {
 	protected static JettySolrRunner SOLR;

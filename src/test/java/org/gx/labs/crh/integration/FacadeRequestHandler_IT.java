@@ -14,8 +14,6 @@ import org.junit.Test;
  * Integration Test for {@link FacadeRequestHandler_IT}.
  * 
  * @author agazzarini
- * @see http://andreagazzarini.blogspot.it/2016/11/quickly-debug-your-solr-add-on.html
- * @see https://andreagazzarini.blogspot.it/2015/10/how-to-do-integration-tests-with-solr.html
  */
 public class FacadeRequestHandler_IT extends BaseIntegrationTest {
 	/**
