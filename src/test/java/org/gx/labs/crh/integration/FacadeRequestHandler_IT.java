@@ -5,7 +5,6 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-import org.gx.labs.BaseIntegrationTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +56,7 @@ public class FacadeRequestHandler_IT extends BaseIntegrationTest {
 		assertEquals(1, response.getResults().getNumFound());
 		
 		final SolrDocument match = response.getResults().iterator().next();
-		assertEquals("Apache Solr Essentials",match.getFieldValue("title"));
+		assertEquals("Apache Solr Essentials", match.getFieldValue("title"));
 		assertNull(match.getFieldValue("id"));
 		assertNull(match.getFieldValue("author"));
     }	
@@ -71,7 +70,7 @@ public class FacadeRequestHandler_IT extends BaseIntegrationTest {
 		assertEquals(1, response.getResults().getNumFound());
 		
 		final SolrDocument match = response.getResults().iterator().next();
-		assertEquals("Andrea Gazzarini",match.getFieldValue("author"));
+		assertEquals("Andrea Gazzarini", match.getFieldValue("author"));
 		assertNull(match.getFieldValue("id"));
 		assertNull(match.getFieldValue("title"));
     }		

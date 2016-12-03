@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.solr.common.params.SolrParams.toSolrParams;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -22,6 +23,7 @@ import org.apache.solr.response.ResultContext;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.DocList;
 import org.apache.solr.search.DocSlice;
+import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.RTimerTree;
 import org.eclipse.jetty.http.HttpParser.RequestHandler;
 
@@ -111,11 +113,13 @@ public class FacadeRequestHandler extends RequestHandlerBase {
 			final SolrQueryResponse response, 
 			final SolrParams params, 
 			final SolrRequestHandler handler) {
-		final SolrQueryResponse scopedResponse = newFrom(response);
-		handler.handleRequest(
-				newFrom(request, params), 
-				scopedResponse); 
-		return scopedResponse.getValues();	
+		try(final SolrQueryRequest scopedRequest = newFrom(request, params)) {
+			final SolrQueryResponse scopedResponse = newFrom(response);
+			handler.handleRequest(
+					scopedRequest, 
+					scopedResponse); 
+			return scopedResponse.getValues();	
+		}
 	}
 	
 	/**
@@ -129,7 +133,17 @@ public class FacadeRequestHandler extends RequestHandlerBase {
 		return new SolrQueryRequestBase(
 				request.getCore(), 
 				new ModifiableSolrParams(params), 
-				new RTimerTree()) {};
+				new RTimerTree()) {
+			@Override
+			public Map<Object, Object> getContext() {
+				return request.getContext();
+			}
+			
+			@Override
+			public SolrIndexSearcher getSearcher() {
+				return request.getSearcher();
+			}
+		};
 	}
 	
 	/**

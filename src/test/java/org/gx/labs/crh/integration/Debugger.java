@@ -1,4 +1,4 @@
-package org.gx.labs;
+package org.gx.labs.crh.integration;
 
 import java.io.IOException;
 
