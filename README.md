@@ -71,9 +71,7 @@ A maven repository contains the last stable version of the component:
 <repositories>
     <repository>
         <id>iqrh-mvn-repo</id>
-        <url>
-	  https://raw.github.com/agazzarini/invisible-queries-request-handler/maven-repository
-	</url>
+        <url>https://raw.github.com/agazzarini/invisible-queries-request-handler/maven-repository</url>
         <snapshots>
             <enabled>true</enabled>
             <updatePolicy>always</updatePolicy>
