@@ -90,7 +90,7 @@
 					<includes>
 						<include>**/*</include>
 					</includes>
-					<repositoryName>https://github.com/agazzarini/invisible-queries-request-handler</repositoryName>
+					<repositoryName>invisible-queries-request-handler</repositoryName>
 					<repositoryOwner>agazzarini</repositoryOwner> 
 				</configuration>
 				<executions>
