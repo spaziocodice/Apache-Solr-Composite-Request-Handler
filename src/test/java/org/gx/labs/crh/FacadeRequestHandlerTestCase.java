@@ -22,7 +22,7 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.junit.Before;
 import org.junit.Test;
 /**
- * Unit test for {@link FacadeRequestHandler}.
+ * Unit test for {@link InvisibleQueriesRequestHandler}.
  * 
  * @author agazzarini
  * @since 1.0
@@ -34,14 +34,14 @@ public class FacadeRequestHandlerTestCase extends BaseUnitTest {
 		rh2 = mock(SearchHandler.class);
 		rh3 = mock(SearchHandler.class);
 		
-		cut = new FacadeRequestHandler();
+		cut = new InvisibleQueriesRequestHandler();
 		
 		qrequest = mock(SolrQueryRequest.class);
 		qresponse = mock(SolrQueryResponse.class);
 		
 		args = new SimpleOrderedMap<>();
 		args.add(
-				FacadeRequestHandler.CHAIN_KEY, 
+				InvisibleQueriesRequestHandler.CHAIN_KEY, 
 				SAMPLE_VALID_CHAIN.stream().collect(joining(",")));
 		
 		params = new ModifiableSolrParams().add(SAMPLE_KEY, SAMPLE_VALUE);

@@ -44,7 +44,7 @@ public class InvocationChainTestCase extends BaseUnitTest {
 		
 		args = new SimpleOrderedMap<>();
 		args.add(
-				FacadeRequestHandler.CHAIN_KEY, 
+				InvisibleQueriesRequestHandler.CHAIN_KEY, 
 				SAMPLE_VALID_CHAIN.stream().collect(joining(",")));
 		
 		params = new ModifiableSolrParams().add(SAMPLE_KEY, SAMPLE_VALUE);
@@ -56,7 +56,7 @@ public class InvocationChainTestCase extends BaseUnitTest {
 		when(core.getRequestHandler(REQUEST_HANDLER_2_NAME)).thenReturn(rh2);
 		when(core.getRequestHandler(REQUEST_HANDLER_3_NAME)).thenReturn(rh3);
 		
-		cut = new FacadeRequestHandler();
+		cut = new InvisibleQueriesRequestHandler();
 		
 		positiveResult = mock(ResultContext.class);
 		docList = mock(DocList.class);

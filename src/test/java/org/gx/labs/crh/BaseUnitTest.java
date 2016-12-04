@@ -23,7 +23,7 @@ public abstract class BaseUnitTest {
 			REQUEST_HANDLER_2_NAME, 
 			REQUEST_HANDLER_3_NAME);
 	
-	protected FacadeRequestHandler cut;
+	protected InvisibleQueriesRequestHandler cut;
 	
 	protected SolrRequestHandler rh1;
 	protected SolrRequestHandler rh2;

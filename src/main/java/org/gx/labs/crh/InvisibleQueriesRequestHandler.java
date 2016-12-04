@@ -33,7 +33,7 @@ import org.eclipse.jetty.http.HttpParser.RequestHandler;
  * @author agazzarini
  * @since 1.0
  */
-public class FacadeRequestHandler extends RequestHandlerBase {
+public class InvisibleQueriesRequestHandler extends RequestHandlerBase {
 	private final static DocList EMPTY_DOCLIST = new DocSlice(0, 0, new int[0], new float[0], 0, 0f);
 	
 	final static String RESPONSE_KEY = "response"; // If only SolrQueryResponse.RESPONSE_KEY would be public ;)
