@@ -85,7 +85,7 @@ After declaring the repository in your pom.xml you can get the artifact using th
 ```xml
 <dependency>
 	<groupId>org.gx.labs</groupId>
-	<artifactId>invisible-query-request-handler</artifactId>
+	<artifactId>invisible-queries-request-handler</artifactId>
 	<version>1.0</version>
 </dependency>
 ```
