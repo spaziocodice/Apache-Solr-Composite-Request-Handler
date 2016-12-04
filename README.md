@@ -65,4 +65,31 @@ will start the "/rh1, /rh2, /rh3" workflow defined in the "chain" parameter.
 
 In this repository, other than the handler itself, you will also find a sample schema, a solrconfig plus unit / integration tests that demonstrate the behaviour.  
 
+A maven repository contains the last stable version of the component: 
+
+```xml
+<repositories>
+    <repository>
+        <id>iqrh-mvn-repo</id>
+        <url>
+	  https://raw.github.com/agazzarini/invisible-queries-request-handler/maven-repository
+	</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+After declaring the repository in your pom.xml you can get the artifact using the following coordinates:
+
+```xml
+<dependency>
+	<groupId>org.gx.labs</groupId>
+	<artifactId>invisible-query-request-handler</artifactId>
+	<version>1.0</version>
+</dependency>
+```
+
 Enjoy!
