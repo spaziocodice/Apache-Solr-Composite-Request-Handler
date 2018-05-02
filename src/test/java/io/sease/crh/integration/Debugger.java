@@ -2,6 +2,7 @@ package io.sease.crh.integration;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -10,6 +11,7 @@ import org.junit.Test;
  * @author agazzarini
  * @see http://andreagazzarini.blogspot.it/2016/11/quickly-debug-your-solr-add-on.html
  */
+@Ignore
 public class Debugger extends BaseIntegrationTest {
 	/**
 	 * Starts Solr and waits for the Enter key pressure.
