@@ -7,6 +7,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -14,6 +15,7 @@ import org.junit.Test;
  * 
  * @author agazzarini
  */
+@Ignore
 public class FacadeRequestHandler_IT extends BaseIntegrationTest {
 	/**
 	 * Indexes some sample data as test fixture.
