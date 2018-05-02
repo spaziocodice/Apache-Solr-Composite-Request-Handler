@@ -50,7 +50,7 @@ Unfortunately there are some contexts where you don't have such kind of control;
 So here comes this request handler: once plugged in Solr, you can chain the three handlers above in this way: 
 
 ```xml
-	<requestHandler name="/search" class="InvisibleQueriesRequestHandler">
+	<requestHandler name="/search" class="io.sease.crh.InvisibleQueriesRequestHandler">
 		<str name="chain">/rh1,/rh2,/rh3</str>
 	</requestHandler>
 ```
@@ -71,7 +71,7 @@ A maven repository contains the last stable version of the component:
 <repositories>
     <repository>
         <id>iqrh-mvn-repo</id>
-        <url>https://raw.github.com/agazzarini/invisible-queries-request-handler/maven-repository</url>
+        <url>https://raw.github.com/SeaseLtd/invisible-queries-request-handler/maven-repository</url>
         <snapshots>
             <enabled>true</enabled>
             <updatePolicy>always</updatePolicy>
@@ -84,7 +84,7 @@ After declaring the repository in your pom.xml you can get the artifact using th
 
 ```xml
 <dependency>
-	<groupId>org.gx.labs</groupId>
+	<groupId>io.sease</groupId>
 	<artifactId>invisible-queries-request-handler</artifactId>
 	<version>1.0</version>
 </dependency>
