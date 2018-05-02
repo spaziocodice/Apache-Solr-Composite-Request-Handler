@@ -50,7 +50,7 @@ Unfortunately there are some contexts where you don't have such kind of control;
 So here comes this request handler: once plugged in Solr, you can chain the three handlers above in this way: 
 
 ```xml
-	<requestHandler name="/search" class="org.gx.labs.crh.InvisibleQueriesRequestHandler">
+	<requestHandler name="/search" class="InvisibleQueriesRequestHandler">
 		<str name="chain">/rh1,/rh2,/rh3</str>
 	</requestHandler>
 ```

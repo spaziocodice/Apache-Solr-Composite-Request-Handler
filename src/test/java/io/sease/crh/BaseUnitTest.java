@@ -1,4 +1,4 @@
-package org.gx.labs.crh;
+package io.sease.crh;
 
 import static java.util.Arrays.asList;
 

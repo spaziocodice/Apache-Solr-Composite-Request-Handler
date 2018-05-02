@@ -63,7 +63,7 @@
 		</lst>
 	</requestHandler>	
 	
-	<requestHandler name="/search" class="org.gx.labs.crh.InvisibleQueriesRequestHandler" default="true">
+	<requestHandler name="/search" class="io.sease.crh.InvisibleQueriesRequestHandler" default="true">
 		<str name="chain">/rh1,/rh2,/rh3</str>
 	</requestHandler>
   	

@@ -1,4 +1,4 @@
-package org.gx.labs.crh.integration;
+package io.sease.crh.integration;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;

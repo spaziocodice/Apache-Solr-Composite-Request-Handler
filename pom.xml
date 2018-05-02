@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.gx.labs</groupId>
+	<groupId>io.sease</groupId>
 	<artifactId>invisible-queries-request-handler</artifactId>
 	<version>1.0</version>
 	<properties>
@@ -28,6 +28,8 @@
 			<name>Andrea Gazzarini</name>
 			<email>a.gazzarini@gmail.com</email>
 			<url>http://it.linkedin.com/in/andreagazzarini</url>
+			<organization>Sease Ltd</organization>
+			<organizationUrl>https://www.sease.io</organizationUrl>
 		</developer>
 	</developers>
 	<dependencies>
@@ -91,7 +93,7 @@
 						<include>**/*</include>
 					</includes>
 					<repositoryName>invisible-queries-request-handler</repositoryName>
-					<repositoryOwner>agazzarini</repositoryOwner> 
+					<repositoryOwner>SeaseLtd</repositoryOwner>
 				</configuration>
 				<executions>
 					<execution>

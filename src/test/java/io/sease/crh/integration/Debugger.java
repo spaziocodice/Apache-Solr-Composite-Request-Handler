@@ -1,4 +1,4 @@
-package org.gx.labs.crh.integration;
+package io.sease.crh.integration;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package org.gx.labs.crh;
+package io.sease.crh;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;

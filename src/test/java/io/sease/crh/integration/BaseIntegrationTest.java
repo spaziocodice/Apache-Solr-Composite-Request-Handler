@@ -1,4 +1,4 @@
-package org.gx.labs.crh.integration;
+package io.sease.crh.integration;
 
 import org.apache.solr.SolrJettyTestBase;
 import org.junit.BeforeClass;
