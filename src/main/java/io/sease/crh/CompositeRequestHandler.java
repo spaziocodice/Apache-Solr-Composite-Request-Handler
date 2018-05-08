@@ -1,13 +1,17 @@
 package io.sease.crh;
 
+import static java.lang.Integer.parseInt;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.apache.solr.common.params.SolrParams.toSolrParams;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntPredicate;
 
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -28,42 +32,102 @@ import org.apache.solr.util.RTimerTree;
 import org.eclipse.jetty.http.HttpParser.RequestHandler;
 
 /**
- * A {@link SolrRequestHandler} that subsequently invokes several children {@link SolrRequestHandler}s.
- * 
+ * A {@link SolrRequestHandler} which orchestrates two or more {@link SolrRequestHandler} instances.
+ * Each handler needs to be defined, as usual, within the solrconfig.xml.
+ * <br/> <br/>
+ * Other than declaring the chain members (i.e. the request handlers that will be orchestrated), this component allows
+ * you to define a "transition" rule, that is: a cardinality-based rule, which will be applied on the results of a
+ * give search handler in order to indicate if a further processing is needed (i.e. if the control should be passed
+ * to the next handler in the chain) or not (i.e. if the response of the current handler is what we are going to
+ * return to the caller).
+ * <br/> <br/>
+ * Initially there was just one rule for controlling the flow between the configured handlers: if the response of the
+ * nth handler was empty (i.e. zero results) then the control would flow through the next member.
+ *
+ * With the enhancement described above, it's possible to manage interesting scenarios, with chains like the following:
+ *
+ * <ul>
+ *     <li>
+ *         <b>eq1</b>: the query response must produce exactly one result; if the response contains 0 or more than 1
+ *         result, then the flow must proceed ahead, to the next handler.
+ *     </li>
+ *     <li>
+ *         <b>gt0</b>: the query response must produce at least 1 result. In case of empty response the system will
+ *         invoke the next handler.
+ *     </li>
+ *     <li>
+ *         <b>always</b>: "always" is a null-object rule, which actually doesn nothing. It must be the last rule in the
+ *         chain, marking the corresponding handler as a last chance for getting a positive response.
+ *     </li>
+ * </ul>
+ *
  * @author agazzarini
  * @since 1.0
  */
-public class InvisibleQueriesRequestHandler extends RequestHandlerBase {
+public class CompositeRequestHandler extends RequestHandlerBase {
 	private final static DocList EMPTY_DOCLIST = new DocSlice(0, 0, new int[0], new float[0], 0, 0f);
+	private final static String EMPTY_STRING = "";
 	
-	final static String RESPONSE_KEY = "response"; // If only SolrQueryResponse.RESPONSE_KEY would be public ;)
-	final static String RESPONSE_HEADER_KEY = "responseHeader"; // If only SolrQueryResponse.RESPONSE_HEADER_KEY would be public ;)
+	private final static String RESPONSE_KEY = "response"; // If only SolrQueryResponse.RESPONSE_KEY would be public ;)
+	private final static String RESPONSE_HEADER_KEY = "responseHeader"; // If only SolrQueryResponse.RESPONSE_HEADER_KEY would be public ;)
+
 	final static String CHAIN_KEY= "chain";
-	
+	final static String RULES_KEY= "rules";
+
+	final static String LESSER_THAN_KEYWORD = "lt";
+	final static String GREATER_THAN_KEYWORD = "gt";
+	final static String EQUAL_KEYWORD = "eq";
+
+	final static IntPredicate ALWAYS = x -> true;
+
+	final static Function<String, IntPredicate> TO_RULE = expression -> {
+		if (expression.startsWith(GREATER_THAN_KEYWORD)) {
+			return x -> x > parseInt(expression.substring(GREATER_THAN_KEYWORD.length()));
+		} else if (expression.startsWith(LESSER_THAN_KEYWORD)) {
+			return x -> x < parseInt(expression.substring(LESSER_THAN_KEYWORD.length()));
+		} else if (expression.startsWith(EQUAL_KEYWORD)) {
+			return x -> x == parseInt(expression.substring(EQUAL_KEYWORD.length()));
+		} else return x -> true;
+	};
+
 	List<String> chain;
-	
+	private Map<String, IntPredicate> rules = new HashMap<>();
+
 	@Override
-	@SuppressWarnings("rawtypes")
-	public void init(final NamedList args) { 
-		chain = stream(toSolrParams(args).get(CHAIN_KEY, "").split(","))
-					.map(ref -> ref.trim())
+	public void init(final NamedList args) {
+		chain = stream(toSolrParams(args).get(CHAIN_KEY, EMPTY_STRING).split(","))
+					.map(String::trim)
 					.filter(ref -> !ref.isEmpty())
 					.collect(toList());
+
+		if (chain.isEmpty()) {
+			throw new SolrException(
+					SolrException.ErrorCode.SERVER_ERROR,
+					"The chain parameter requires at least one request handler reference.");
+		}
+
+		final Iterator<String> iterator = chain.iterator();
+		stream(toSolrParams(args).get(RULES_KEY, EMPTY_STRING).split(","))
+				.map(String::trim)
+				.filter(rule -> !rule.isEmpty())
+				.map(TO_RULE)
+				.forEach(predicate -> rules.put(iterator.next(), predicate));
+
+		rules.put(chain.get(chain.size() - 1), ALWAYS);
 	}
 	
 	@Override
 	public void handleRequestBody(
 			final SolrQueryRequest request, 
-			final SolrQueryResponse response) throws Exception {
-		final SolrParams params = request.getParams();
-
+			final SolrQueryResponse response) {
 		response.setAllValues(
 			chain.stream()
-				.map(refName -> { return requestHandler(request, refName); })
-				.filter(SearchHandler.class::isInstance) 
-				.map(handler -> { return executeQuery(request, response, params, handler); })
-				.filter(qresponse -> howManyFound(qresponse) > 0)
+				.map(refName -> requestHandler(request, refName))
+				.filter(pair -> pair.getValue() instanceof SearchHandler)
+				.map(pair -> executeQuery(request, response, request.getParams(), pair.getValue(), pair.getKey()))
+				.filter (responsePair -> rules.getOrDefault(responsePair.getKey(), ALWAYS).test(howManyFound(responsePair.getValue())))
 				.findFirst()
+				.map(Map.Entry::getValue)
 				.orElse(emptyResponse(request, response)));
 	}
 	
@@ -105,20 +169,22 @@ public class InvisibleQueriesRequestHandler extends RequestHandlerBase {
 	 * @param response the current {@link SolrQueryResponse}.
 	 * @param params the request parameters.
 	 * @param handler the executor handler.
+	 * @param name the executor name.
 	 * @return the query response, that is, the result of the handler's query execution.
 	 */
 	@SuppressWarnings("unchecked")
-	NamedList<Object> executeQuery(
+	Map.Entry<String, NamedList<Object>> executeQuery(
 			final SolrQueryRequest request, 
 			final SolrQueryResponse response, 
 			final SolrParams params, 
-			final SolrRequestHandler handler) {
+			final SolrRequestHandler handler,
+			final String name) {
 		try(final SolrQueryRequest scopedRequest = newFrom(request, params)) {
 			final SolrQueryResponse scopedResponse = newFrom(response);
 			handler.handleRequest(
 					scopedRequest, 
 					scopedResponse); 
-			return scopedResponse.getValues();	
+			return new AbstractMap.SimpleEntry<String, NamedList<Object>>(name, scopedResponse.getValues());
 		}
 	}
 	
@@ -163,10 +229,12 @@ public class InvisibleQueriesRequestHandler extends RequestHandlerBase {
 	 * 
 	 * @param request the current {@link SolrQueryRequest}.
 	 * @param name the name of the requested {@link RequestHandler}.
-	 * @return the {@link RequestHandler} associated with the given name.
+	 * @return the {@link RequestHandler} associated with the given name (actually a pair that includes also its name).
 	 */
-	SolrRequestHandler requestHandler(final SolrQueryRequest request, final String name) {
-		return core(request).getRequestHandler(name);
+	Map.Entry<String, SolrRequestHandler> requestHandler(final SolrQueryRequest request, final String name) throws IllegalArgumentException{
+		return new AbstractMap.SimpleEntry<>(
+				name,
+				core(request).getRequestHandler(name));
 	}
 	
 	/**

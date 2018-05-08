@@ -1,6 +1,6 @@
-# Invisible Queries RequestHandler
-This is a Solr RequestHandler that allows to create a chain of SearchHandler references. 
-Each chained handler is invoked in sequence only if the preceeding handler execution didn't produce any results (i.e. matches). 
+# CompositeRequestHandler
+This is a Solr RequestHandler that allows to create a chain of preexisting SearchHandler references.   
+Each handler in the chain is associated with a rule which controls the transition to the next handler: when a given handler is invoked (i.e. its query is executed), the CompositeRequestHandler only if the preceeding handler execution didn't produce any results (i.e. matches). 
 In this way you can configure something like a workflow, reusing the handlers you already configured in solrconfig.xml
 
 For example, let's imagine we have the following three handlers defined:
@@ -41,19 +41,28 @@ For example, let's imagine we have the following three handlers defined:
 	</requestHandler>
 ```
 
-and you want to run the first handler (/rh1), then the second (/rh2) if the first produces no results, and finally the third (/rh3) but only if the second didn't get any matches. 
+and you want to run the first handler (/rh1), then the second (/rh2) if the first produces more than one result, and finally the third (/rh3) but only if the second didn't get any matches. 
 
-Usually, this is a behaviour which belongs to the client application, but that assumes you have control on the client code. 
-
-Unfortunately there are some contexts where you don't have such kind of control; an example? The Magento-Solr connector is a blackbox where you configure something on Magento and Solr side, but of course, you cannot declare such "query workflow" behaviour like that described above: on top of a user query, the Magento connector executes a given search logic that you cannot change (unless you're are a Magento developer, of course)
+Usually, this is a behaviour which belongs to the client application, but this implicitly assumes you have control on the client code. 
+Unfortunately there are some contexts where you cannot have such kind of control; you can think to a Magento-Solr integration scenario where the "client" part 
+is hidden in Magento, and unless you are a Magento developer (and you are ok with changing the client code) you cannot change the built-in search workflow.
 
 So here comes this request handler: once plugged in Solr, you can chain the three handlers above in this way: 
 
 ```xml
-	<requestHandler name="/search" class="io.sease.crh.InvisibleQueriesRequestHandler">
+	<requestHandler name="/search" class="io.sease.crh.CompositeRequestHandler">
 		<str name="chain">/rh1,/rh2,/rh3</str>
+		<str name="rules">eq1,gt0,always</str>
 	</requestHandler>
 ```
+
+The first parameter is the chain composition, that is: the list of all request handlers that compose the chain. 
+Following the same order of the chain, the "rules" parameter is a list the rules associated to each handler. At the moment the following rules are available: 
+
+- eq: the rules matches (i.e. the subsequent handler in the chain won't be invoked) only if the current handler response produced exactly n results
+- lt: the rules matches (i.e. the subsequent handler in the chain won't be invoked) only if the current handler response produced less than n results
+- gt: the rules matches (i.e. the subsequent handler in the chain won't be invoked) only if the current handler response produced more than n results
+- always: the rule always matches. This is usually the rule associated with the last handler in the chain 
 
 Now, executing a query like this: 
 
@@ -61,9 +70,7 @@ Now, executing a query like this:
 > curl "http://127.0.0.1:8983/solr/example/search?q=Andrea"
 ```
 
-will start the "/rh1, /rh2, /rh3" workflow defined in the "chain" parameter.
-
-In this repository, other than the handler itself, you will also find a sample schema, a solrconfig plus unit / integration tests that demonstrate the behaviour.  
+will start the "/rh1, /rh2, /rh3" workflow defined above.
 
 A maven repository contains the last stable version of the component: 
 
@@ -89,5 +96,3 @@ After declaring the repository in your pom.xml you can get the artifact using th
 	<version>1.0</version>
 </dependency>
 ```
-
-Enjoy!
