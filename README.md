@@ -78,7 +78,7 @@ A maven repository contains the last stable version of the component:
 <repositories>
     <repository>
         <id>iqrh-mvn-repo</id>
-        <url>https://raw.github.com/SeaseLtd/invisible-queries-request-handler/maven-repository</url>
+        <url>https://raw.github.com/SeaseLtd/composite-request-handler/maven-repository</url>
         <snapshots>
             <enabled>true</enabled>
             <updatePolicy>always</updatePolicy>
@@ -92,7 +92,7 @@ After declaring the repository in your pom.xml you can get the artifact using th
 ```xml
 <dependency>
 	<groupId>io.sease</groupId>
-	<artifactId>invisible-queries-request-handler</artifactId>
+	<artifactId>composite-request-handler</artifactId>
 	<version>1.0</version>
 </dependency>
 ```
