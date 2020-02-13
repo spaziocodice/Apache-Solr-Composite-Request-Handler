@@ -75,7 +75,7 @@ public class InvocationChainTestCase extends BaseUnitTest {
 		rh3 = mock(SearchHandler.class);
 
 		qrequest = mock(SolrQueryRequest.class);
-		qresponse = mock(SolrQueryResponse.class);
+		qresponse = new SolrQueryResponse();
 		
 		args = new SimpleOrderedMap<>();
 		args.add(

@@ -1,5 +1,6 @@
 package io.sease.crh;
 
+import static io.sease.crh.CompositeRequestHandler.RESPONSE_KEY;
 import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -19,11 +20,14 @@ import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.SearchHandler;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrRequestHandler;
+import org.apache.solr.response.ResultContext;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.search.DocList;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Unit test for {@link CompositeRequestHandler}.
@@ -83,13 +87,12 @@ public class CompositeRequestHandlerTestCase extends BaseUnitTest {
 	public void zeroDocFound() {
 		assertEquals(
 				0, 
-				cut.howManyFound(
-						cut.emptyResponse(qrequest, qresponse)));
+				cut.howManyFound(cut.emptyResponse(qrequest, qresponse)));
 	}
 	
 	@Test
 	public void zeroDocFoundInCaseOfNoResultContext() {
-		assertEquals(0, cut.howManyFound(new SimpleOrderedMap<>()));
+		assertEquals(0, cut.howManyFound(new SolrQueryResponse()));
 	}
 	
 	@Test
@@ -111,10 +114,16 @@ public class CompositeRequestHandlerTestCase extends BaseUnitTest {
 	public void executeQuery() {
 		final SolrRequestHandler handler = mock(SolrRequestHandler.class);
 		
-		final Map.Entry<String, NamedList<Object>> result = cut.executeQuery(qrequest, qresponse, params, handler, REQUEST_HANDLER_1_NAME);
+		final Map.Entry<String, SolrQueryResponse> result = cut.executeQuery(qrequest, qresponse, params, handler, REQUEST_HANDLER_1_NAME);
 
 		verify(handler).handleRequest(any(SolrQueryRequest.class), any(SolrQueryResponse.class));
-		assertEquals(1, result.getValue().size());
+		assertEquals(1.0, Optional.ofNullable(result.getValue())
+							.map(SolrQueryResponse::getValues)
+							.map(list -> list.get(RESPONSE_KEY))
+							.map(ResultContext.class::cast)
+							.map(ResultContext::getDocList)
+							.map(DocList::matches)
+							.orElse(1L),0);
 	}
 	
 	@Test
