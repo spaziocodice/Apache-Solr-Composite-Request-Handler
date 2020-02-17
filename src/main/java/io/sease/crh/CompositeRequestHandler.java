@@ -10,8 +10,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
@@ -118,6 +116,7 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public void handleRequestBody(
 			final SolrQueryRequest request, 
 			final SolrQueryResponse response) {
@@ -128,11 +127,12 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 				.filter (responsePair -> rules.getOrDefault(responsePair.getKey(), ALWAYS).test(howManyFound(responsePair.getValue())))
 				.findFirst()
 				.map(Map.Entry::getValue)
-				.orElse(emptyResponse(request, response));
+				.orElse(response);
 
-		response.setAllValues(actualresponse.getValues());
-		response.getToLog().clear();
-		response.getToLog().addAll(actualresponse.getToLog());
+		if (response != actualresponse) {
+			response.setAllValues(actualresponse.getValues());
+			response.getToLog().addAll(actualresponse.getToLog());
+		}
 	}
 	
 	/**

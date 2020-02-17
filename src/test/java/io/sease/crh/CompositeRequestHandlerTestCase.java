@@ -1,7 +1,6 @@
 package io.sease.crh;
 
 import static io.sease.crh.CompositeRequestHandler.RESPONSE_KEY;
-import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -50,7 +49,7 @@ public class CompositeRequestHandlerTestCase extends BaseUnitTest {
 		args = new SimpleOrderedMap<>();
 		args.add(
 				CompositeRequestHandler.CHAIN_KEY,
-				CHAIN.stream().collect(joining(",")));
+				String.join(",", CHAIN));
 		
 		params = new ModifiableSolrParams().add(SAMPLE_KEY, SAMPLE_VALUE);
 	}
