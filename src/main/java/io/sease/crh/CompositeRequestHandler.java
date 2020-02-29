@@ -2,6 +2,7 @@ package io.sease.crh;
 
 import static java.lang.Integer.parseInt;
 import static java.util.Arrays.stream;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.apache.solr.common.params.SolrParams.toSolrParams;
 
@@ -9,8 +10,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
@@ -68,7 +67,7 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 	private final static DocList EMPTY_DOCLIST = new DocSlice(0, 0, new int[0], new float[0], 0, 0f);
 	private final static String EMPTY_STRING = "";
 	
-	private final static String RESPONSE_KEY = "response"; // If only SolrQueryResponse.RESPONSE_KEY would be public ;)
+	public final static String RESPONSE_KEY = "response"; // If only SolrQueryResponse.RESPONSE_KEY would be public ;)
 	private final static String RESPONSE_HEADER_KEY = "responseHeader"; // If only SolrQueryResponse.RESPONSE_HEADER_KEY would be public ;)
 
 	final static String CHAIN_KEY= "chain";
@@ -117,29 +116,39 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public void handleRequestBody(
 			final SolrQueryRequest request, 
 			final SolrQueryResponse response) {
-		response.setAllValues(
-			chain.stream()
+		final SolrQueryResponse actualresponse = chain.stream()
 				.map(refName -> requestHandler(request, refName))
 				.filter(pair -> pair.getValue() instanceof SearchHandler)
 				.map(pair -> executeQuery(request, response, request.getParams(), pair.getValue(), pair.getKey()))
 				.filter (responsePair -> rules.getOrDefault(responsePair.getKey(), ALWAYS).test(howManyFound(responsePair.getValue())))
 				.findFirst()
 				.map(Map.Entry::getValue)
-				.orElse(emptyResponse(request, response)));
+				.orElse(response);
+
+		if (response != actualresponse) {
+			response.setAllValues(actualresponse.getValues());
+			response.getToLog().addAll(actualresponse.getToLog());
+		}
 	}
 	
 	/**
 	 * Returns the total count of matches associated with the given query response.
 	 * 
-	 * @param qresponse the "response" portion of the {@link QueryResponse}.
+	 * @param response the current query execution response.
 	 * @return the total count of matches associated with the given query response.
 	 */
-	int howManyFound(final NamedList<?> qresponse) {
-		final ResultContext context = (ResultContext)qresponse.get(RESPONSE_KEY);
-		return context != null ? context.getDocList().size() : 0;
+	int howManyFound(final SolrQueryResponse response) {
+		return ofNullable(response)
+				.map(SolrQueryResponse::getValues)
+				.map(values -> values.get(RESPONSE_KEY))
+				.map(ResultContext.class::cast)
+				.map(ResultContext::getDocList)
+				.map(DocList::size)
+				.orElse(0);
 	}
 	 
 	/**
@@ -149,7 +158,7 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 	 * @param response the current {@link SolrQueryResponse}.
 	 * @return a Null Object response, indicating no handler produced a match.
 	 */
-	NamedList<Object> emptyResponse(final SolrQueryRequest request, final SolrQueryResponse response) {
+	SolrQueryResponse emptyResponse(final SolrQueryRequest request, final SolrQueryResponse response) {
 		final SimpleOrderedMap<Object> empty = new SimpleOrderedMap<>();
 		empty.add(RESPONSE_KEY, 
 				new BasicResultContext(
@@ -160,7 +169,8 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 					request));
 		
 		empty.add(RESPONSE_HEADER_KEY, new SimpleOrderedMap<>());
-		return empty;
+		response.setAllValues(empty);
+		return response;
 	}
 	
 	/**
@@ -172,8 +182,7 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 	 * @param name the executor name.
 	 * @return the query response, that is, the result of the handler's query execution.
 	 */
-	@SuppressWarnings("unchecked")
-	Map.Entry<String, NamedList<Object>> executeQuery(
+	Map.Entry<String, SolrQueryResponse> executeQuery(
 			final SolrQueryRequest request, 
 			final SolrQueryResponse response, 
 			final SolrParams params, 
@@ -184,7 +193,7 @@ public class CompositeRequestHandler extends RequestHandlerBase {
 			handler.handleRequest(
 					scopedRequest, 
 					scopedResponse); 
-			return new AbstractMap.SimpleEntry<String, NamedList<Object>>(name, scopedResponse.getValues());
+			return new AbstractMap.SimpleEntry<>(name, scopedResponse);
 		}
 	}
 	
